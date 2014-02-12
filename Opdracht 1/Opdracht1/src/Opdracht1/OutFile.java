@@ -57,7 +57,7 @@ public class OutFile{
     }
     
     public void printRecord(){
-        for(char[] x : this.lines){
+        for(char[] x : this.lines){// Loops trough char[][], and prints each char. Also has some newlines.
             for(char y : x){
                 System.out.print(y == 0 ? 'X' : y);
             }
@@ -67,11 +67,11 @@ public class OutFile{
     
     public String printRecordString(){
         String s = "";
-        for(char[] x : this.lines){
+        for(char[] x : this.lines){// Loops trough file and appends string. Also adds some styling characters.
             for(char y : x){
                 s = s + (y == 0 ? 'X' : y);
             }
-            s = s + System.getProperty("line.separator");
+            s = s + System.getProperty("line.separator");// Appends a line seperator for style.
         }
         return s;
     }

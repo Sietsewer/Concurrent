@@ -22,23 +22,21 @@ public class MainWindow extends javax.swing.JFrame {
     /**
      * Creates new form NewApplication
      */
-    final JFileChooser fc = new JFileChooser();
-    final JFileChooser wc = new JFileChooser();
-    ArrayList<OutFile> outFileStore = new ArrayList<OutFile>();
-    OutFile currentOutfile;
-    private boolean first = true;
-    int lineCount = 1;
-    int lineLength = 12;
-    boolean Seperate = false;
-    File writeLocation;
-    BufferedReader br = null;
-    BufferedWriter bw = null;
-    private boolean writing;
-    private boolean tofile;
+    final JFileChooser fc = new JFileChooser();// FileChooser object for picking record txt.
+    final JFileChooser wc = new JFileChooser();// FileChooser object for picking target file.
+    OutFile currentRecord;
+    private boolean first = true;// boolean for checking if this is the first record that is pushed. Only works once.
+    int lineCount = 1;// Initial amount of target record lines
+    int lineLength = 12;// Initial length of target record line
+    boolean Seperate = false;// Boolean for checking wether to seperate record in output or not.
+    File writeLocation;// Location where file will be written.
+    BufferedReader br = null;// Reader object.
+    BufferedWriter bw = null;// Writer object.
+    private boolean tofile;// Boolean to keep track wether or not to write to file.
 
     public MainWindow() {
         initComponents();
-        this.currentOutfile = new OutFile(lineCount, lineLength);
+        this.currentRecord = new OutFile(lineCount, lineLength);// Inits record
     }
 
     /**
@@ -67,7 +65,7 @@ public class MainWindow extends javax.swing.JFrame {
         openMenuItem = new javax.swing.JMenuItem();
         exitMenuItem = new javax.swing.JMenuItem();
         editMenu = new javax.swing.JMenu();
-        copyMenuItem = new javax.swing.JMenuItem();
+        btn_Edit_PushFinal = new javax.swing.JMenuItem();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
 
@@ -209,14 +207,14 @@ public class MainWindow extends javax.swing.JFrame {
         editMenu.setMnemonic('e');
         editMenu.setText("Edit");
 
-        copyMenuItem.setMnemonic('y');
-        copyMenuItem.setText("Push record");
-        copyMenuItem.addActionListener(new java.awt.event.ActionListener() {
+        btn_Edit_PushFinal.setMnemonic('y');
+        btn_Edit_PushFinal.setText("Push record");
+        btn_Edit_PushFinal.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
-                copyMenuItemActionPerformed(evt);
+                btn_Edit_PushFinalActionPerformed(evt);
             }
         });
-        editMenu.add(copyMenuItem);
+        editMenu.add(btn_Edit_PushFinal);
 
         menuBar.add(editMenu);
 
@@ -245,48 +243,42 @@ public class MainWindow extends javax.swing.JFrame {
     }//GEN-LAST:event_exitMenuItemActionPerformed
 
     private void openMenuItemActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_openMenuItemActionPerformed
-        int returnVal = fc.showOpenDialog(MainWindow.this);
-        System.out.println(fc.getCurrentDirectory());
-        if (returnVal == JFileChooser.APPROVE_OPTION) {
-            try {
-                String sCurrentLine;
-                File selected = fc.getSelectedFile();
-                br = new BufferedReader(new FileReader(selected));
-
-                while ((sCurrentLine = br.readLine()) != null) {
-                    this.pushToRecords(sCurrentLine);
+        int returnVal = fc.showOpenDialog(MainWindow.this);// Opens file chooser for read
+        if (returnVal == JFileChooser.APPROVE_OPTION) {// Checks wether the user has clicked OK.
+            try {// Begining of reading code.
+                String sCurrentLine;// Holds the current line read by reader.
+                br = new BufferedReader(new FileReader(fc.getSelectedFile()));// Sets the BufferedReader to the picked dir.
+                while ((sCurrentLine = br.readLine()) != null) {// Reads trough all lines,, and pushes each line to record.
+                    this.pushToRecords(sCurrentLine);// Pushes read line to record.
                 }
-
-            } catch (IOException e) {
+            } catch (IOException e) {// Exception with IO
                 e.printStackTrace();
-            } finally {
+            } finally {// Closing of the read code.
                 try {
-                    if (br != null) {
-                        br.close();
-                    }
-                } catch (IOException ex) {
+                    if (br != null) br.close(); // Closes the reader, if it exists.
+                } catch (IOException ex) {// Exception with IO
                     ex.printStackTrace();
                 }
-            }
-            if(!writing){
-            writeLocation = new File(fc.getName(), "out.txt");
             }
         }
     }//GEN-LAST:event_openMenuItemActionPerformed
 
-    private void copyMenuItemActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_copyMenuItemActionPerformed
-        this.pushFinal();
-    }//GEN-LAST:event_copyMenuItemActionPerformed
+    private void btn_Edit_PushFinalActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btn_Edit_PushFinalActionPerformed
+        // Called on menu click event. EDIT > PUSHFINAL in this case.
+        this.pushFinal();// Empties record by pushing it.
+    }//GEN-LAST:event_btn_Edit_PushFinalActionPerformed
 
     private void checkBox_PushToFileActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_checkBox_PushToFileActionPerformed
-        tofile = this.checkBox_PushToFile.isSelected();
+        // Called on checkbox click event. To file in this case.
+        tofile = this.checkBox_PushToFile.isSelected();// Switches boolean to checkbox value.
     }//GEN-LAST:event_checkBox_PushToFileActionPerformed
 
     private void textField_LinesActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_textField_LinesActionPerformed
     }//GEN-LAST:event_textField_LinesActionPerformed
 
     private void checkBox_SeperateActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_checkBox_SeperateActionPerformed
-        this.Seperate = this.checkBox_Seperate.isSelected();
+        // Called on checkbox click event. Seperate records in this case.
+        this.Seperate = this.checkBox_Seperate.isSelected();// Switches seperate boolean to checkbox value.
     }//GEN-LAST:event_checkBox_SeperateActionPerformed
 
     private void textField_CharsActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_textField_CharsActionPerformed
@@ -301,20 +293,21 @@ public class MainWindow extends javax.swing.JFrame {
     }//GEN-LAST:event_textField_CharsPropertyChange
 
     private void button_SizeChangeActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_button_SizeChangeActionPerformed
-        this.lineLength = Integer.parseInt(this.textField_Chars.getText());
-        this.lineCount = Integer.parseInt(this.textField_Lines.getText());
-
+        // Called on menu click event. Apply in this case.
+        this.lineLength = Integer.parseInt(this.textField_Chars.getText());// Sets int value of textboxes to int sizes.
+        this.lineCount = Integer.parseInt(this.textField_Lines.getText());// ditto.
     }//GEN-LAST:event_button_SizeChangeActionPerformed
 
     private void writeDirActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_writeDirActionPerformed
-        this.writeLocation=new File(this.writeDir.getText());
+        // Called on menu click event. Change in directory text in this case.
+        this.writeLocation=new File(this.writeDir.getText());// Sets the writing directory to value of textbox.
     }//GEN-LAST:event_writeDirActionPerformed
 
     private void browseWriteActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_browseWriteActionPerformed
-        int returnVal = wc.showOpenDialog(MainWindow.this);
-        if(returnVal == JFileChooser.APPROVE_OPTION){
-            this.writeDir.setText(wc.getSelectedFile().getAbsolutePath());
-            this.writeLocation = wc.getSelectedFile();
+        int returnVal = wc.showOpenDialog(MainWindow.this);// Opens write location dialog.
+        if(returnVal == JFileChooser.APPROVE_OPTION){// Checks if user clicked ok.
+            this.writeDir.setText(wc.getSelectedFile().getAbsolutePath());// Sets textbox text with chosen file location
+            this.writeLocation = wc.getSelectedFile();// Sets write location with chosen location.
         }
     }//GEN-LAST:event_browseWriteActionPerformed
 
@@ -354,10 +347,10 @@ public class MainWindow extends javax.swing.JFrame {
     }
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton browseWrite;
+    private javax.swing.JMenuItem btn_Edit_PushFinal;
     private javax.swing.JButton button_SizeChange;
     private javax.swing.JCheckBox checkBox_PushToFile;
     private javax.swing.JCheckBox checkBox_Seperate;
-    private javax.swing.JMenuItem copyMenuItem;
     private javax.swing.JMenu editMenu;
     private javax.swing.JMenuItem exitMenuItem;
     private javax.swing.JMenu fileMenu;
@@ -379,17 +372,17 @@ public class MainWindow extends javax.swing.JFrame {
 
     void pushToRecords(String line) {
         line = (first ? "" : "-") + this.compressLine(line);//if it's not first record, add "-" || Replace ** with !.
-        first = false;
+        first = false;// Makes sure it doens't happen again. Restart to reset.
         boolean lineEmpty = false;// Inits boolean for use in loop.
         while (!lineEmpty) {// Loop until the param string is empty.
-            line = this.currentOutfile.addText(line.toCharArray());// replaces line with overflow of addText.
-            if ((line.length() >= 1) || !this.currentOutfile.hasSpace()) {// Checks if there was any overflow. If yes, make new output record.
-                if(tofile){
-                    this.fileAppendLine(this.currentOutfile.printRecordString() + (this.Seperate ? "\n" : ""));
-                } else {
-                    this.textArea.append(this.currentOutfile.printRecordString() + (this.Seperate ? "\n" : ""));// Print record.
+            line = this.currentRecord.addText(line.toCharArray());// replaces line with overflow of addText.
+            if ((line.length() >= 1) || !this.currentRecord.hasSpace()) {// Checks if there was any overflow. If yes, print, make new output record.
+                if(tofile){// Branches when write to file is chosen.
+                    this.fileAppendLine(this.currentRecord.printRecordString() + (this.Seperate ? "\n" : ""));// Print record to file.
+                } else {// Branches if otherwise.
+                    this.textArea.append(this.currentRecord.printRecordString() + (this.Seperate ? "\n" : ""));// Print record to screen.
                 }
-                this.currentOutfile = new OutFile(lineCount, lineLength);// Creates empty record, using currentOutfile identifier.
+                this.currentRecord = new OutFile(lineCount, lineLength);// Creates empty record, using currentOutfile identifier.
             } else {// if empty, breaks the loop.
                 lineEmpty = true;// set bool to break loop.
             }
@@ -398,27 +391,27 @@ public class MainWindow extends javax.swing.JFrame {
 
     void pushFinal() {
         if(tofile){
-                    this.fileAppendLine(this.currentOutfile.printRecordString() + (this.Seperate ? "\n" : ""));
+                    this.fileAppendLine(this.currentRecord.printRecordString() + (this.Seperate ? "\n" : ""));// Print record to file.
                 } else {
-                    this.textArea.append(this.currentOutfile.printRecordString() + (this.Seperate ? "\n" : ""));// Print record.
+                    this.textArea.append(this.currentRecord.printRecordString() + (this.Seperate ? "\n" : ""));// Print record to screen.
                 }
-        this.currentOutfile = new OutFile(lineCount, lineLength);// Creates empty record, using currentOutfile identifier.
+        this.currentRecord = new OutFile(lineCount, lineLength);// Creates empty record, using currentOutfile identifier.
     }
 
     void resizeRecord() {
-        this.currentOutfile = new OutFile(lineCount, lineLength);
+        this.currentRecord = new OutFile(lineCount, lineLength);// Creates new record with empty data.
     }
 
     void fileAppendLine(String line) {
-        try {
-            this.bw = new BufferedWriter(new FileWriter(this.writeLocation, true));
-            this.bw.append(line);
-        } catch (IOException e) {
+        try {// Begin write code.
+            this.bw = new BufferedWriter(new FileWriter(this.writeLocation, true));// sets writer to chosen line.
+            this.bw.append(line);// Calls append function, which opens the file, and writes on last spot. No overwriting, no file storing.
+        } catch (IOException e) {// IO exception.
             e.printStackTrace();
         } finally {
             try {
-                bw.close();
-            } catch (IOException e) {
+                if (bw!=null) bw.close();
+            } catch (IOException e) {// IO exception.
                 e.printStackTrace();
             }
         }

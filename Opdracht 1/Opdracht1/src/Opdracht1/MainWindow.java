@@ -5,8 +5,10 @@
 package Opdracht1;
 
 import java.io.BufferedReader;
+import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileReader;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.util.ArrayList;
 import javax.swing.JFileChooser;
@@ -21,13 +23,18 @@ public class MainWindow extends javax.swing.JFrame {
      * Creates new form NewApplication
      */
     final JFileChooser fc = new JFileChooser();
+    final JFileChooser wc = new JFileChooser();
     ArrayList<OutFile> outFileStore = new ArrayList<OutFile>();
     OutFile currentOutfile;
     private boolean first = true;
     int lineCount = 1;
     int lineLength = 12;
     boolean Seperate = false;
+    File writeLocation;
     BufferedReader br = null;
+    BufferedWriter bw = null;
+    private boolean writing;
+    private boolean tofile;
 
     public MainWindow() {
         initComponents();
@@ -47,24 +54,20 @@ public class MainWindow extends javax.swing.JFrame {
         textArea = new javax.swing.JTextArea();
         jPanel1 = new javax.swing.JPanel();
         checkBox_PushToFile = new javax.swing.JCheckBox();
-        checkBox_FilePerRecord = new javax.swing.JCheckBox();
         checkBox_Seperate = new javax.swing.JCheckBox();
         textField_Lines = new javax.swing.JTextField();
         jLabel1 = new javax.swing.JLabel();
         textField_Chars = new javax.swing.JTextField();
         jLabel2 = new javax.swing.JLabel();
         button_SizeChange = new javax.swing.JButton();
+        writeDir = new javax.swing.JTextField();
+        browseWrite = new javax.swing.JButton();
         menuBar = new javax.swing.JMenuBar();
         fileMenu = new javax.swing.JMenu();
         openMenuItem = new javax.swing.JMenuItem();
-        saveMenuItem = new javax.swing.JMenuItem();
-        saveAsMenuItem = new javax.swing.JMenuItem();
         exitMenuItem = new javax.swing.JMenuItem();
         editMenu = new javax.swing.JMenu();
         copyMenuItem = new javax.swing.JMenuItem();
-        helpMenu = new javax.swing.JMenu();
-        contentsMenuItem = new javax.swing.JMenuItem();
-        aboutMenuItem = new javax.swing.JMenuItem();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
 
@@ -79,8 +82,6 @@ public class MainWindow extends javax.swing.JFrame {
                 checkBox_PushToFileActionPerformed(evt);
             }
         });
-
-        checkBox_FilePerRecord.setText("File per record");
 
         checkBox_Seperate.setText("Seperate records");
         checkBox_Seperate.addActionListener(new java.awt.event.ActionListener() {
@@ -103,7 +104,7 @@ public class MainWindow extends javax.swing.JFrame {
 
         jLabel1.setText("Lines");
 
-        textField_Chars.setText("8");
+        textField_Chars.setText("12");
         textField_Chars.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 textField_CharsActionPerformed(evt);
@@ -124,6 +125,19 @@ public class MainWindow extends javax.swing.JFrame {
             }
         });
 
+        writeDir.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                writeDirActionPerformed(evt);
+            }
+        });
+
+        browseWrite.setText("Browse");
+        browseWrite.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                browseWriteActionPerformed(evt);
+            }
+        });
+
         javax.swing.GroupLayout jPanel1Layout = new javax.swing.GroupLayout(jPanel1);
         jPanel1.setLayout(jPanel1Layout);
         jPanel1Layout.setHorizontalGroup(
@@ -131,9 +145,9 @@ public class MainWindow extends javax.swing.JFrame {
             .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, jPanel1Layout.createSequentialGroup()
                 .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                 .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
+                    .addComponent(writeDir)
                     .addComponent(button_SizeChange, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                     .addComponent(checkBox_PushToFile)
-                    .addComponent(checkBox_FilePerRecord)
                     .addComponent(checkBox_Seperate, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                     .addGroup(jPanel1Layout.createSequentialGroup()
                         .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING, false)
@@ -142,16 +156,15 @@ public class MainWindow extends javax.swing.JFrame {
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                         .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                             .addComponent(jLabel1)
-                            .addComponent(jLabel2)))))
+                            .addComponent(jLabel2)))
+                    .addComponent(browseWrite, javax.swing.GroupLayout.Alignment.TRAILING)))
         );
         jPanel1Layout.setVerticalGroup(
             jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(jPanel1Layout.createSequentialGroup()
                 .addContainerGap()
                 .addComponent(checkBox_PushToFile)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(checkBox_FilePerRecord)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addGap(23, 23, 23)
                 .addComponent(checkBox_Seperate)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
@@ -163,7 +176,11 @@ public class MainWindow extends javax.swing.JFrame {
                     .addComponent(jLabel2, javax.swing.GroupLayout.PREFERRED_SIZE, 15, javax.swing.GroupLayout.PREFERRED_SIZE))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(button_SizeChange)
-                .addContainerGap(137, Short.MAX_VALUE))
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(writeDir, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(browseWrite)
+                .addContainerGap(82, Short.MAX_VALUE))
         );
 
         fileMenu.setMnemonic('f');
@@ -177,15 +194,6 @@ public class MainWindow extends javax.swing.JFrame {
             }
         });
         fileMenu.add(openMenuItem);
-
-        saveMenuItem.setMnemonic('s');
-        saveMenuItem.setText("Save");
-        fileMenu.add(saveMenuItem);
-
-        saveAsMenuItem.setMnemonic('a');
-        saveAsMenuItem.setText("Save As ...");
-        saveAsMenuItem.setDisplayedMnemonicIndex(5);
-        fileMenu.add(saveAsMenuItem);
 
         exitMenuItem.setMnemonic('x');
         exitMenuItem.setText("Exit");
@@ -211,19 +219,6 @@ public class MainWindow extends javax.swing.JFrame {
         editMenu.add(copyMenuItem);
 
         menuBar.add(editMenu);
-
-        helpMenu.setMnemonic('h');
-        helpMenu.setText("Help");
-
-        contentsMenuItem.setMnemonic('c');
-        contentsMenuItem.setText("Contents");
-        helpMenu.add(contentsMenuItem);
-
-        aboutMenuItem.setMnemonic('a');
-        aboutMenuItem.setText("About");
-        helpMenu.add(aboutMenuItem);
-
-        menuBar.add(helpMenu);
 
         setJMenuBar(menuBar);
 
@@ -251,7 +246,6 @@ public class MainWindow extends javax.swing.JFrame {
 
     private void openMenuItemActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_openMenuItemActionPerformed
         int returnVal = fc.showOpenDialog(MainWindow.this);
-        this.currentOutfile = new OutFile(lineCount, lineLength);
         System.out.println(fc.getCurrentDirectory());
         if (returnVal == JFileChooser.APPROVE_OPTION) {
             try {
@@ -274,18 +268,18 @@ public class MainWindow extends javax.swing.JFrame {
                     ex.printStackTrace();
                 }
             }
-            int a = 0;
+            if(!writing){
+            writeLocation = new File(fc.getName(), "out.txt");
+            }
         }
     }//GEN-LAST:event_openMenuItemActionPerformed
 
     private void copyMenuItemActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_copyMenuItemActionPerformed
-        this.currentOutfile = new OutFile(lineCount, lineLength);
         this.pushFinal();
-        int a = 0;
     }//GEN-LAST:event_copyMenuItemActionPerformed
 
     private void checkBox_PushToFileActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_checkBox_PushToFileActionPerformed
-        // TODO add your handling code here:
+        tofile = this.checkBox_PushToFile.isSelected();
     }//GEN-LAST:event_checkBox_PushToFileActionPerformed
 
     private void textField_LinesActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_textField_LinesActionPerformed
@@ -296,7 +290,6 @@ public class MainWindow extends javax.swing.JFrame {
     }//GEN-LAST:event_checkBox_SeperateActionPerformed
 
     private void textField_CharsActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_textField_CharsActionPerformed
-        
     }//GEN-LAST:event_textField_CharsActionPerformed
 
     private void textField_LinesPropertyChange(java.beans.PropertyChangeEvent evt) {//GEN-FIRST:event_textField_LinesPropertyChange
@@ -312,6 +305,18 @@ public class MainWindow extends javax.swing.JFrame {
         this.lineCount = Integer.parseInt(this.textField_Lines.getText());
 
     }//GEN-LAST:event_button_SizeChangeActionPerformed
+
+    private void writeDirActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_writeDirActionPerformed
+        this.writeLocation=new File(this.writeDir.getText());
+    }//GEN-LAST:event_writeDirActionPerformed
+
+    private void browseWriteActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_browseWriteActionPerformed
+        int returnVal = wc.showOpenDialog(MainWindow.this);
+        if(returnVal == JFileChooser.APPROVE_OPTION){
+            this.writeDir.setText(wc.getSelectedFile().getAbsolutePath());
+            this.writeLocation = wc.getSelectedFile();
+        }
+    }//GEN-LAST:event_browseWriteActionPerformed
 
     /**
      * @param args the command line arguments
@@ -348,28 +353,24 @@ public class MainWindow extends javax.swing.JFrame {
         });
     }
     // Variables declaration - do not modify//GEN-BEGIN:variables
-    private javax.swing.JMenuItem aboutMenuItem;
+    private javax.swing.JButton browseWrite;
     private javax.swing.JButton button_SizeChange;
-    private javax.swing.JCheckBox checkBox_FilePerRecord;
     private javax.swing.JCheckBox checkBox_PushToFile;
     private javax.swing.JCheckBox checkBox_Seperate;
-    private javax.swing.JMenuItem contentsMenuItem;
     private javax.swing.JMenuItem copyMenuItem;
     private javax.swing.JMenu editMenu;
     private javax.swing.JMenuItem exitMenuItem;
     private javax.swing.JMenu fileMenu;
-    private javax.swing.JMenu helpMenu;
     private javax.swing.JLabel jLabel1;
     private javax.swing.JLabel jLabel2;
     private javax.swing.JPanel jPanel1;
     private javax.swing.JScrollPane jScrollPane1;
     private javax.swing.JMenuBar menuBar;
     private javax.swing.JMenuItem openMenuItem;
-    private javax.swing.JMenuItem saveAsMenuItem;
-    private javax.swing.JMenuItem saveMenuItem;
     private javax.swing.JTextArea textArea;
     private javax.swing.JTextField textField_Chars;
     private javax.swing.JTextField textField_Lines;
+    private javax.swing.JTextField writeDir;
     // End of variables declaration//GEN-END:variables
 
     String compressLine(String line) {
@@ -382,8 +383,12 @@ public class MainWindow extends javax.swing.JFrame {
         boolean lineEmpty = false;// Inits boolean for use in loop.
         while (!lineEmpty) {// Loop until the param string is empty.
             line = this.currentOutfile.addText(line.toCharArray());// replaces line with overflow of addText.
-            if (line.length() >= 1) {// Checks if there was any overflow. If yes, make new output record.
-                this.textArea.append(this.currentOutfile.printRecordString() + (this.Seperate ? "\n" : ""));// Print record.
+            if ((line.length() >= 1) || !this.currentOutfile.hasSpace()) {// Checks if there was any overflow. If yes, make new output record.
+                if(tofile){
+                    this.fileAppendLine(this.currentOutfile.printRecordString() + (this.Seperate ? "\n" : ""));
+                } else {
+                    this.textArea.append(this.currentOutfile.printRecordString() + (this.Seperate ? "\n" : ""));// Print record.
+                }
                 this.currentOutfile = new OutFile(lineCount, lineLength);// Creates empty record, using currentOutfile identifier.
             } else {// if empty, breaks the loop.
                 lineEmpty = true;// set bool to break loop.
@@ -392,11 +397,30 @@ public class MainWindow extends javax.swing.JFrame {
     }
 
     void pushFinal() {
-        this.textArea.append(this.currentOutfile.printRecordString() + (this.Seperate ? "\n" : ""));// Print record.
+        if(tofile){
+                    this.fileAppendLine(this.currentOutfile.printRecordString() + (this.Seperate ? "\n" : ""));
+                } else {
+                    this.textArea.append(this.currentOutfile.printRecordString() + (this.Seperate ? "\n" : ""));// Print record.
+                }
         this.currentOutfile = new OutFile(lineCount, lineLength);// Creates empty record, using currentOutfile identifier.
     }
 
     void resizeRecord() {
         this.currentOutfile = new OutFile(lineCount, lineLength);
+    }
+
+    void fileAppendLine(String line) {
+        try {
+            this.bw = new BufferedWriter(new FileWriter(this.writeLocation, true));
+            this.bw.append(line);
+        } catch (IOException e) {
+            e.printStackTrace();
+        } finally {
+            try {
+                bw.close();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
     }
 }

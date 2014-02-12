@@ -24,6 +24,10 @@ public class OutFile{
         hasSpace = true;
     }
     
+    public boolean hasSpace(){
+        return hasSpace;
+    }
+    
     public OutFile(OutFile file){
         this.lines = file.lines.clone();// Dereference the pointers
         this.lineCount = file.lineCount;
